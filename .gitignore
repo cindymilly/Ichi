@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+.venv/
+
+# Secrets
+.env
+*.env
+
+# Build
+build/
+dist/
+
+# ML files nặng
+*.pkl
+delivery_data.csv
+
+# macOS
+.DS_Store
+__MACOSX/
+
+# Logs & cache
+*.log
+coverage/
+__pycache__/
+*.pyc

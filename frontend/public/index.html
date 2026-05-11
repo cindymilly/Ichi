@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#5C4033" />
+    <meta
+      name="description"
+      content="Ichi Delivery - Dịch vụ giao đồ ăn và hàng hóa với phong cách sang trọng, vintage và thân thiện."
+    />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <!-- Google Fonts: Playfair Display (Chữ có chân sang trọng) & Lora (Vintage) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome cho các icon đồ ăn thức uống -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+      /* Khởi tạo hệ tông màu Nâu - Trắng Vintage chuẩn mực ngay từ thẻ body */
+      :root {
+        --primary-brown: #3E2723; /* Nâu cà phê đậm - Sang trọng */
+        --secondary-brown: #8D6E63; /* Nâu sữa - Thân thiện */
+        --vintage-white: #FDF8F5; /* Trắng ngà kem - Vintage */
+        --accent-color: #D7CCC8; /* Điểm nhấn */
+      }
+
+      body {
+        margin: 0;
+        background-color: var(--vintage-white);
+        color: var(--primary-brown);
+        font-family: 'Lora', serif; /* Font chữ mang hơi hướng hoài cổ, đọc rất êm mắt */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* Màn hình chờ siêu đẹp và thân thiện trước khi React tải xong */
+      #initial-loader {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background-color: var(--vintage-white);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.8s ease-out;
+      }
+
+      /* Icon thức ăn nhấp nháy thân thiện */
+      .loader-icons {
+        font-size: 2.5rem;
+        color: var(--secondary-brown);
+        margin-bottom: 25px;
+        animation: float 2s ease-in-out infinite;
+      }
+      
+      .loader-icons i { margin: 0 12px; }
+
+      #initial-loader h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 3rem;
+        margin: 0;
+        letter-spacing: 4px;
+        color: var(--primary-brown);
+        font-weight: 700;
+      }
+
+      #initial-loader p {
+        font-style: italic;
+        color: var(--secondary-brown);
+        font-size: 1.1rem;
+        margin-top: 10px;
+      }
+
+      /* Hiệu ứng trôi nổi nhẹ nhàng */
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+      }
+    </style>
+    <title>Ichi | Sang trọng & Thân thiện</title>
+  </head>
+  <body>
+    <noscript>Vui lòng bật JavaScript để sử dụng Ichi Delivery.</noscript>
+    
+    <!-- Màn hình Loading xuất hiện đầu tiên với Icon đồ ăn -->
+    <div id="initial-loader">
+      <div class="loader-icons">
+        <i class="fa-solid fa-burger"></i>
+        <i class="fa-solid fa-mug-hot"></i>
+        <i class="fa-solid fa-pizza-slice"></i>
+        <i class="fa-solid fa-ice-cream"></i>
+      </div>
+      <h1>ICHI</h1>
+      <p>Đang chuẩn bị những món ngon nhất cho bạn...</p>
+    </div>
+
+    <!-- Nơi React App sẽ được chèn vào -->
+    <div id="root"></div>
+
+    <script>
+      // Ẩn màn hình loading đi một cách mượt mà khi React đã mount
+      window.onload = function() {
+        setTimeout(() => {
+          const loader = document.getElementById('initial-loader');
+          if (loader) {
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 800);
+          }
+        }, 1200); // Giữ lại 1.2s để user kịp ngắm màn hình vintage rất đẹp này
+      };
+    </script>
+  </body>
+</html>

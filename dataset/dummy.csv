@@ -1,0 +1,4 @@
+order_id,customer_id,driver_id,distance_km,delivery_fee,status
+ORD-001,CUST-99,DRV-12,5.2,25000,DELIVERED
+ORD-002,CUST-21,DRV-08,12.0,55000,IN_TRANSIT
+ORD-003,CUST-05,,3.1,15000,FINDING_DRIVER

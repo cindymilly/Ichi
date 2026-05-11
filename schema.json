@@ -1,0 +1,484 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Ichi Food Delivery & Logistics Master Schema",
+  "description": "Cấu trúc dữ liệu toàn diện (Comprehensive Data Schema) cho hệ thống đặt và giao đồ ăn Ichi, mô phỏng kiến trúc hệ thống cấp độ doanh nghiệp (Enterprise Super App).",
+  "type": "object",
+  "collections": {
+    "Users": {
+      "type": "object",
+      "description": "Bảng lưu trữ thông tin tài khoản người dùng dùng chung cho toàn hệ thống.",
+      "properties": {
+        "_id": { "type": "string", "description": "UUID hoặc ObjectId" },
+        "fullName": { "type": "string" },
+        "phoneNumber": { "type": "string", "description": "Số điện thoại đăng nhập chính" },
+        "email": { "type": "string", "format": "email" },
+        "passwordHash": { "type": "string" },
+        "role": { "type": "string", "enum": ["CUSTOMER", "DRIVER", "MERCHANT", "ADMIN", "SUPPORT"] },
+        "avatarUrl": { "type": "string", "format": "uri" },
+        "status": { "type": "string", "enum": ["ACTIVE", "UNVERIFIED", "SUSPENDED", "BANNED"] },
+        "preferences": {
+          "type": "object",
+          "properties": {
+            "language": { "type": "string", "default": "vi" },
+            "pushNotifications": { "type": "boolean", "default": true },
+            "promotionalEmails": { "type": "boolean", "default": false }
+          }
+        },
+        "devices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "deviceId": { "type": "string" },
+              "os": { "type": "string", "enum": ["iOS", "Android", "Web"] },
+              "fcmToken": { "type": "string", "description": "Firebase Cloud Messaging token" },
+              "lastLogin": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "web3": {
+          "type": "object",
+          "description": "Thông tin liên kết Blockchain",
+          "properties": {
+            "custodialWalletAddress": { "type": "string" },
+            "linkedPersonalWallet": { "type": "string" },
+            "loyaltyTokens": { "type": "number", "default": 0 }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fullName", "phoneNumber", "role", "status"]
+    },
+    
+    "CustomerProfiles": {
+      "type": "object",
+      "description": "Hồ sơ chi tiết mở rộng dành riêng cho Khách hàng.",
+      "properties": {
+        "userId": { "type": "string", "description": "Tham chiếu tới Users" },
+        "savedAddresses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string", "enum": ["HOME", "WORK", "OTHER"] },
+              "address": { "type": "string" },
+              "lat": { "type": "number" },
+              "lng": { "type": "number" },
+              "gateOrFloor": { "type": "string" },
+              "noteToDriver": { "type": "string" }
+            }
+          }
+        },
+        "membershipTier": { "type": "string", "enum": ["BRONZE", "SILVER", "GOLD", "DIAMOND"] },
+        "totalOrdersCompleted": { "type": "integer", "default": 0 },
+        "favoriteRestaurants": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "DriverProfiles": {
+      "type": "object",
+      "description": "Hồ sơ đối tác tài xế.",
+      "properties": {
+        "userId": { "type": "string", "description": "Tham chiếu tới Users" },
+        "vehicle": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "enum": ["BICYCLE", "MOTORCYCLE", "CAR", "VAN"] },
+            "plateNumber": { "type": "string" },
+            "color": { "type": "string" },
+            "brand": { "type": "string" },
+            "registrationImage": { "type": "string", "format": "uri" }
+          }
+        },
+        "identification": {
+          "type": "object",
+          "properties": {
+            "nationalId": { "type": "string" },
+            "driverLicenseNumber": { "type": "string" },
+            "frontImage": { "type": "string", "format": "uri" },
+            "backImage": { "type": "string", "format": "uri" }
+          }
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "heading": { "type": "number", "description": "Hướng di chuyển (độ)" },
+            "speed": { "type": "number", "description": "Tốc độ (km/h)" },
+            "lastUpdated": { "type": "string", "format": "date-time" }
+          }
+        },
+        "workingStatus": { "type": "string", "enum": ["OFFLINE", "ONLINE", "IN_TRIP"] },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "rating": { "type": "number", "default": 5.0 },
+            "acceptanceRate": { "type": "number", "default": 100 },
+            "cancellationRate": { "type": "number", "default": 0 },
+            "totalTrips": { "type": "integer", "default": 0 }
+          }
+        }
+      }
+    },
+
+    "Restaurants": {
+      "type": "object",
+      "description": "Hồ sơ Cửa hàng/Nhà hàng đối tác.",
+      "properties": {
+        "_id": { "type": "string" },
+        "merchantId": { "type": "string", "description": "Tham chiếu tới Users (Chủ quán)" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "coverImageUrl": { "type": "string", "format": "uri" },
+        "logoUrl": { "type": "string", "format": "uri" },
+        "address": {
+          "type": "object",
+          "properties": {
+            "fullAddress": { "type": "string" },
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "city": { "type": "string" },
+            "district": { "type": "string" }
+          }
+        },
+        "categories": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["RICE", "NOODLES", "DRINKS", "FAST_FOOD", "HEALTHY", "DESSERT"] }
+        },
+        "operatingHours": {
+          "type": "array",
+          "description": "Giờ mở cửa theo ngày trong tuần",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dayOfWeek": { "type": "integer", "minimum": 0, "maximum": 6 },
+              "openTime": { "type": "string", "description": "VD: 08:00" },
+              "closeTime": { "type": "string", "description": "VD: 22:00" },
+              "isClosed": { "type": "boolean" }
+            }
+          }
+        },
+        "status": { "type": "string", "enum": ["OPEN", "CLOSED", "BUSY", "SUSPENDED"] },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "rating": { "type": "number" },
+            "reviewCount": { "type": "integer" },
+            "averagePreparationTime": { "type": "integer", "description": "Phút" }
+          }
+        }
+      }
+    },
+
+    "Menus": {
+      "type": "object",
+      "description": "Danh mục món ăn của từng nhà hàng.",
+      "properties": {
+        "_id": { "type": "string" },
+        "restaurantId": { "type": "string" },
+        "categories": {
+          "type": "array",
+          "description": "Nhóm món ăn (VD: Món chính, Món thêm, Đồ uống)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "categoryId": { "type": "string" },
+              "name": { "type": "string" },
+              "sortOrder": { "type": "integer" },
+              "isActive": { "type": "boolean" }
+            }
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "itemId": { "type": "string" },
+              "categoryId": { "type": "string" },
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "price": { "type": "number" },
+              "discountPrice": { "type": "number", "nullable": true },
+              "imageUrl": { "type": "string" },
+              "isAvailable": { "type": "boolean" },
+              "modifierGroups": {
+                "type": "array",
+                "description": "Tùy chọn thêm (Topping, Size, Lượng đá/đường)",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "groupId": { "type": "string" },
+                    "name": { "type": "string", "description": "VD: Chọn Size" },
+                    "isRequired": { "type": "boolean" },
+                    "minSelection": { "type": "integer" },
+                    "maxSelection": { "type": "integer" },
+                    "options": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": { "type": "string", "description": "VD: Size Lớn" },
+                          "extraPrice": { "type": "number" },
+                          "isAvailable": { "type": "boolean" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "Orders": {
+      "type": "object",
+      "description": "Bảng Đơn Hàng lõi của toàn hệ thống.",
+      "properties": {
+        "_id": { "type": "string" },
+        "orderCode": { "type": "string", "description": "Mã đơn ngắn gọn hiển thị cho user (VD: ICHI-8A2F)" },
+        "customerId": { "type": "string" },
+        "restaurantId": { "type": "string" },
+        "driverId": { "type": "string", "nullable": true },
+        "status": {
+          "type": "string",
+          "enum": [
+            "DRAFT",
+            "PENDING_PAYMENT",
+            "FINDING_DRIVER",
+            "DRIVER_ACCEPTED",
+            "AT_RESTAURANT",
+            "FOOD_READY",
+            "PICKED_UP",
+            "IN_TRANSIT",
+            "ARRIVED_AT_DROPOFF",
+            "DELIVERED",
+            "CANCELLED",
+            "FAILED_DELIVERY"
+          ]
+        },
+        "orderItems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "itemId": { "type": "string" },
+              "name": { "type": "string" },
+              "quantity": { "type": "integer" },
+              "unitPrice": { "type": "number" },
+              "totalPrice": { "type": "number" },
+              "selectedModifiers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "groupName": { "type": "string" },
+                    "optionName": { "type": "string" },
+                    "extraPrice": { "type": "number" }
+                  }
+                }
+              },
+              "specialInstructions": { "type": "string" }
+            }
+          }
+        },
+        "locationDetails": {
+          "type": "object",
+          "properties": {
+            "pickup": {
+              "address": { "type": "string" },
+              "lat": { "type": "number" },
+              "lng": { "type": "number" }
+            },
+            "dropoff": {
+              "address": { "type": "string" },
+              "lat": { "type": "number" },
+              "lng": { "type": "number" },
+              "contactName": { "type": "string" },
+              "contactPhone": { "type": "string" },
+              "note": { "type": "string" }
+            },
+            "estimatedDistanceKm": { "type": "number" },
+            "estimatedDurationMins": { "type": "integer" }
+          }
+        },
+        "financials": {
+          "type": "object",
+          "properties": {
+            "subtotal": { "type": "number", "description": "Tổng tiền món ăn" },
+            "deliveryFee": { "type": "number" },
+            "platformFee": { "type": "number" },
+            "tax": { "type": "number" },
+            "discountAmount": { "type": "number" },
+            "promoCode": { "type": "string", "nullable": true },
+            "grandTotal": { "type": "number" },
+            "currency": { "type": "string", "default": "VND" }
+          }
+        },
+        "paymentInfo": {
+          "type": "object",
+          "properties": {
+            "method": { "type": "string", "enum": ["CASH", "CREDIT_CARD", "E_WALLET", "WEB3_CRYPTO"] },
+            "status": { "type": "string", "enum": ["UNPAID", "HOLD", "PAID", "REFUNDED"] },
+            "transactionId": { "type": "string" }
+          }
+        },
+        "timestamps": {
+          "type": "object",
+          "properties": {
+            "createdAt": { "type": "string", "format": "date-time" },
+            "acceptedAt": { "type": "string", "format": "date-time" },
+            "pickedUpAt": { "type": "string", "format": "date-time" },
+            "deliveredAt": { "type": "string", "format": "date-time" },
+            "cancelledAt": { "type": "string", "format": "date-time" }
+          }
+        },
+        "cancellation": {
+          "type": "object",
+          "properties": {
+            "reason": { "type": "string" },
+            "cancelledBy": { "type": "string", "enum": ["CUSTOMER", "DRIVER", "MERCHANT", "SYSTEM"] }
+          }
+        }
+      }
+    },
+
+    "Payments": {
+      "type": "object",
+      "description": "Lịch sử Giao dịch & Smart Contract Log",
+      "properties": {
+        "_id": { "type": "string" },
+        "referenceId": { "type": "string", "description": "Có thể là OrderId hoặc DepositId" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["PAY_ORDER", "REFUND", "DRIVER_PAYOUT", "MERCHANT_PAYOUT", "DEPOSIT", "WITHDRAWAL"] },
+        "amount": { "type": "number" },
+        "currency": { "type": "string" },
+        "gateway": { "type": "string", "enum": ["STRIPE", "ZALOPAY", "MOMO", "WEB3_SMART_CONTRACT", "CASH"] },
+        "status": { "type": "string", "enum": ["PENDING", "SUCCESS", "FAILED"] },
+        "blockchainData": {
+          "type": "object",
+          "description": "Chỉ có nếu gateway là WEB3",
+          "properties": {
+            "transactionHash": { "type": "string" },
+            "fromAddress": { "type": "string" },
+            "toAddress": { "type": "string" },
+            "gasUsed": { "type": "number" },
+            "blockNumber": { "type": "integer" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+
+    "Reviews": {
+      "type": "object",
+      "description": "Hệ thống Đánh giá đa chiều",
+      "properties": {
+        "_id": { "type": "string" },
+        "orderId": { "type": "string" },
+        "customerId": { "type": "string" },
+        "restaurant": {
+          "type": "object",
+          "properties": {
+            "restaurantId": { "type": "string" },
+            "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "comment": { "type": "string" },
+            "tags": { "type": "array", "items": { "type": "string" } },
+            "images": { "type": "array", "items": { "type": "string", "format": "uri" } }
+          }
+        },
+        "driver": {
+          "type": "object",
+          "properties": {
+            "driverId": { "type": "string" },
+            "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+            "comment": { "type": "string" },
+            "tags": { "type": "array", "items": { "type": "string", "enum": ["LỊCH_SỰ", "NHANH_CHÓNG", "CẨN_THẬN", "THÁI_ĐỘ_KÉM"] } }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+
+    "Promotions": {
+      "type": "object",
+      "description": "Hệ thống Mã giảm giá & Khuyến mãi",
+      "properties": {
+        "_id": { "type": "string" },
+        "code": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "discountType": { "type": "string", "enum": ["PERCENTAGE", "FIXED_AMOUNT", "FREE_SHIPPING"] },
+        "discountValue": { "type": "number" },
+        "maxDiscountAmount": { "type": "number", "nullable": true },
+        "minOrderValue": { "type": "number", "default": 0 },
+        "validFrom": { "type": "string", "format": "date-time" },
+        "validUntil": { "type": "string", "format": "date-time" },
+        "usageLimit": { "type": "integer", "description": "Tổng số lần dùng tối đa" },
+        "usagePerUser": { "type": "integer", "default": 1 },
+        "isActive": { "type": "boolean", "default": true }
+      }
+    },
+
+    "ChatMessages": {
+      "type": "object",
+      "description": "Tin nhắn Real-time In-app giữa Customer, Driver và Support",
+      "properties": {
+        "_id": { "type": "string" },
+        "roomId": { "type": "string", "description": "Thường là OrderId" },
+        "senderId": { "type": "string" },
+        "senderRole": { "type": "string" },
+        "messageType": { "type": "string", "enum": ["TEXT", "IMAGE", "LOCATION", "SYSTEM"] },
+        "content": { "type": "string" },
+        "mediaUrl": { "type": "string", "nullable": true },
+        "isRead": { "type": "boolean", "default": false },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+
+    "Notifications": {
+      "type": "object",
+      "description": "Lịch sử Push Notification",
+      "properties": {
+        "_id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "type": { "type": "string", "enum": ["ORDER_UPDATE", "PROMOTION", "SYSTEM_ALERT", "CHAT"] },
+        "actionUrl": { "type": "string", "description": "Deep link để click vào mở app" },
+        "isRead": { "type": "boolean", "default": false },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+
+    "AuditLogs": {
+      "type": "object",
+      "description": "Nhật ký hệ thống để truy vết bảo mật (Giống hệt QLNS-main)",
+      "properties": {
+        "_id": { "type": "string" },
+        "userId": { "type": "string", "nullable": true },
+        "action": { "type": "string" },
+        "resourceType": { "type": "string", "enum": ["ORDER", "USER", "PAYMENT", "SYSTEM_CONFIG"] },
+        "resourceId": { "type": "string" },
+        "changes": {
+          "type": "object",
+          "properties": {
+            "before": { "type": "object" },
+            "after": { "type": "object" }
+          }
+        },
+        "ipAddress": { "type": "string" },
+        "userAgent": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}
